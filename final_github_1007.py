@@ -146,7 +146,7 @@ def GetDetails(data,browser,supabase,baseUrl): # baseURL = 'https://sam.gov/opp'
   soup=BeautifulSoup(browser.page_source,'html.parser')
   with open('soup.html', 'w', encoding='utf-8') as f:
     f.write(soup.prettify())
-  # 수정된 사항 반영   
+
   # Create an empty list.
   generalInfos = []
   try:   
@@ -198,7 +198,7 @@ def GetDetails(data,browser,supabase,baseUrl): # baseURL = 'https://sam.gov/opp'
       if primary_poc_div:
           primary_poc_ul = soup.find('ul', attrs={'class':'usa-unstyled-list ng-star-inserted'}) # Find inner 'ul' (Unordered list) tag with the specified class. 
           primary_poc_li_list = primary_poc_ul.find_all('li') # Find inner 'li' (list) tag where 'name', 'email' and 'phone number' are placed in each 'li' tag. 
-      # 빈 dictionary를 생성해서 Name, Email, Phone을 기재 
+      # 빈 dictionary를 생성해서 Name, Email, Phone을 기재 (Add details in an empty dictionary.)
           primary_poc_info = {'Name': '', 'Email': '', 'Phone': ''}
 
           for li in primary_poc_li_list: # 'li' tag was parsed as a bs4 object. 
@@ -371,7 +371,7 @@ GetSearch(keywordList)
 # Create a Supabase client information to connect by defining public URL and personal api-key.
 url = "https://wbdjmxiyffwpazexmdhr.supabase.co"
 api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndiZGpteGl5ZmZ3cGF6ZXhtZGhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjYzNjM5OTAsImV4cCI6MjA0MTkzOTk5MH0.poQUOwW-9otlWDD_VXjktIowQtY8hS0AUC4vh3k4azk"
-# Supabase 클라이언트를 생성합니다.
+# Supabase Client Creation.
 supabase: Client = create_client(url, api_key)
 
 # Create 'docs' folder.
@@ -387,12 +387,7 @@ totalResult=[]
 # Open a Chrome broswer for web scraping.
 browser=chrome_browser('https://www.google.co.kr')
 
-
-# 데이터 리스트를 순회하며 각 기사의 상세 정보를 가져옵니다.
-# Update Loop through dataList to fetch contact_info to the existing table in Supabase.
-# Include the load_checkpoint 여기서부터 기사가 수집될 때마다 checkpoint의 숫자가 올라감. 그래서 중간에 끊기더라도 끊긴 곳에서 부터 시작 가능. 
-
-
+# Get details from each document using 'GetDetails' function. 
 
 for index,data in enumerate(dataList): # DataList is a list of dictionaries and 'data' is one of the dictionaries in the list, representing each document(RFP). 
   print(f"{index+1}/{len(dataList)}번째 기사 상세정보 가져오기") 
@@ -416,5 +411,5 @@ for index,data in enumerate(dataList): # DataList is a list of dictionaries and 
   with open('totalResult.json', 'w', encoding='utf-8') as f:
     json.dump(totalResult, f, ensure_ascii=False)
   
-  # 1초 동안 대기합니다.
+  # Wait for 1 minute.
   time.sleep(1)
