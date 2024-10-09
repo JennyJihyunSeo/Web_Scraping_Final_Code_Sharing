@@ -413,3 +413,4 @@ for index,data in enumerate(dataList): # DataList is a list of dictionaries and 
   
   # Wait for 1 minute.
   time.sleep(1)
+
