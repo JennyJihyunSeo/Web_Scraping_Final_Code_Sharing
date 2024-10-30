@@ -17,6 +17,9 @@ from selenium.common.exceptions import TimeoutException # Browser does not meet 
 from selenium.webdriver.common.keys import Keys
 import datetime
 
+import numpy #will this import fix my dataframe indexing problem? seems not
+import pandas
+
 #until I figure out how to convert html tables into python usuable code, here is a manual copypast of the important parts:
 event_id = """0000032172
 0000032983
@@ -774,6 +777,7 @@ dept_list = dept.split()
 
 
 #function was copypasted wholesale
+    #added a different default download spot to make programming much easier
 # Define chrome_browser to initialize and set up the Chrome browser for installation purposes. 
 def chrome_browser(url):
     chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]  # Identify the version of Chrome browser in a local machine 
@@ -799,13 +803,11 @@ def chrome_browser(url):
 
 #no keyword functionality yet
 #heavily modified for no api
+#I can either download the file to a more convenient location or try the request.get route
 def GetSearch():
     browser.get("https://caleprocure.ca.gov/pages/Events-BS3/event-search.aspx") #cannot use any keywords if I go straight to this webpage
     browser.implicitly_wait(15) #page loads super long for some reason
     browser.find_element(By.ID,'RESP_INQA_HD_VW_GR$hexcel$0').click() #clicks on download link
-    #browser.implicitly_wait(8)#pop up takes around 5 secs #error
-    #time.sleep(8) #should work now, because this is beautifulsoup not selenium #try making one with an implicit wait somehow? #<- def should, because i keep downloading the error page instead of the real document
-
     #copypasted from another one
     #should be best sleep thing
     #is it better or worse than an implicit wait?
@@ -813,39 +815,16 @@ def GetSearch():
         EC.element_to_be_clickable((By.ID, "downloadButton"))
     )
     #we'll see if the below works or not, don't entirely understand it because I copied some parts
-    #browser.find_element(By.ID,'downloadButton').click() #to see if my issue is with request or with something else
+    browser.find_element(By.ID,'downloadButton').click() #to see if my issue is with request or with something else
     #soup=BeautifulSoup(browser.page_source,'html.parser')
     #downloadURL = soup.find(id='downloadButton')['href']
     #print(soup.find(id='downloadButton'))
 
-    #another try at pulling the file without clicking
-    #I pray that I can just copypaste the headers and cookies
-    #I've come to realize that this is far more complex than just the button click probably
-#    headers = {
-#        'accept': 'application/json, text/javascript, */*; q=0.01',
-#        'accept-language': 'en-US,en;q=0.9',
-#        'priority': 'u=1, i',
-#        'referer': 'https://caleprocure.ca.gov/pages/Events-BS3/#event-search.aspx',
-#        'sec-ch-ua': '"Chromium";v="130", "Google Chrome";v="130", "Not?#A_Brand";v="99"',
-#        'sec-ch-ua-mobile': '?0',
-#        'sec-ch-ua-platform': '"Windows"',
-#        'sec-fetch-dest': 'empty',
-#        'sec-fetch-mode': 'cors',
-#        'sec-fetch-site': 'same-origin',
-#        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) #AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-#    }
-#    cookies = {
-#        '_gid':'GA1.2.763622719.1730262566',
-#        'InFlightSessionID':'289c96c0-66ed-4395-8669-a077b583e6f7',
-#        '_ga':'GA1.2.186034465.1730262566',
-#        '_gat_gtag_UA_3419582_2':1,
-#        'AWSALB':'+GlM70bvOPLVT3H/iGy764Q7oqimWtBY44cchbygZ0FFtktfq5/H8HX9AXh2UdH6CJrmg3LXbqd3vs34nr+3oC1YIGMHTz/TIOihk5j4HwZq0Vnl4hERK2DxBjsO',
-#        'AWSALBCORS':'+GlM70bvOPLVT3H/iGy764Q7oqimWtBY44cchbygZ0FFtktfq5/H8HX9AXh2UdH6CJrmg3LXbqd3vs34nr+3oC1YIGMHTz/TIOihk5j4HwZq0Vnl4hERK2DxBjsO',
-#        '_ga_K963M0PKTT':'GS1.1.1730262565.1.1.1730264713.0.0.0'
-#    }
-#    response = requests.post('https://caleprocure.ca.gov/nlx3/psc/psfpd1/SUPPLIER/ERP/c/AUC_MANAGE_BIDS.AUC_RESP_INQ_AUC.GBL',
-#                  headers = headers,
-#                  cookies=cookies)
+    #could be a useful code chunk if I do go go the request.get route
+    #remember that a proxy could be an option too
+    #cookies = browser.get_cookies()
+    #print(cookies)
+    #requests.get(downloadURL, cookies=cookies)
 
     #response = requests.get(downloadURL)
     #print(response.content)
@@ -855,6 +834,10 @@ def GetSearch():
     #soup2=BeautifulSoup(downloadFile,'html.parser')
     #print(soup2.get_text)
 
+#I've separated the getting of excel file and the parsing of it for now
+def GetSearch2(rawtext): 
+    soup3=BeautifulSoup(rawtext,'html.parser')
+    print(soup3.stripped_strings)
     
     #for now, the (single needed) url is manually put in
 def GetDetails(data,browser,supabase,baseUrl):
@@ -920,7 +903,16 @@ browser=chrome_browser('https://www.google.co.kr')
 
 GetSearch() #let's see if this works
 
-for deptID, eventID in zip(dept_list, event_id_list): 
+#f = open("ps (14).xls")
+#content = f.read()
+#f.close()
+#GetSearch2(content)
+foo1 = pandas.read_html("ps (14).xls", header=0)
+#print(len(foo1)) #it's one
+dept_list = foo1[0]["Department"]
+event_id = foo1[0]["Event ID"]
+
+for deptID, eventID in zip(dept_list, event_id): 
     data = {'url':'https://caleprocure.ca.gov/event/{}/{}'.format(deptID, eventID)}
     #print(data)
     result=GetDetails(data, browser, supabase, url)
