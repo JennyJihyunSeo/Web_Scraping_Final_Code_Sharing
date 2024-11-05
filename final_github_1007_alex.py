@@ -20,6 +20,8 @@ import datetime
 import numpy #will this import fix my dataframe indexing problem? seems not
 import pandas
 
+downloadDir = "docfoo"
+
 #function was copypasted wholesale
     #plan to add a different default download spot to make programming much easier
 # Define chrome_browser to initialize and set up the Chrome browser for installation purposes. 
@@ -36,6 +38,27 @@ def chrome_browser(url):
     options = webdriver.ChromeOptions()  # Configure Chrome browser options at once and send all configurations to the webdriver in one go by using options as object(or instance). 
     # options.add_argument('headless') # 'headless' mode enables Chrome browser to be operated in the background without opening a window on a screen.
     # options.add_argument('--headless=new') # This is the newer version of 'headless' mode that matched the newer version of 'Chrome browser' 
+
+    #set new download directory
+    #downloadDir = "docfoo" #set globally now
+    def createFolder(directory):
+        try:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+        except OSError:
+            print('Error: Creating directory. ' + directory)
+    createFolder(downloadDir)
+    print(os.path.dirname(downloadDir))
+    print(os.path.realpath(downloadDir))
+    prefs = {"download.default_directory" : os.path.realpath(downloadDir) #this one works
+             #"download.default_directory" : os.path.dirname(downloadDir)
+             #"download.default_directory" : "/"+downloadDir
+             #,'savefile.default_directory': "/"+downloadDir
+             #,"directory_upgrade": True
+             }
+    
+    options.add_experimental_option("prefs",prefs)
+
     options.add_experimental_option("detach", True)  # Opens browser window on a screen during web scrping and prevents the browser window from closing after the task completes.
     options.add_experimental_option("excludeSwitches", ["enable-logging"])  # Disabling the enable-logging switch to suppress unnecessary logs displayed in the console.
     
@@ -60,6 +83,8 @@ def GetSearch():
     )
     #we'll see if the below works or not, don't entirely understand it because I copied some parts
     browser.find_element(By.ID,'downloadButton').click() #to see if my issue is with request or with something else
+    #do i need to wait for file to download?
+
     #soup=BeautifulSoup(browser.page_source,'html.parser')
     #downloadURL = soup.find(id='downloadButton')['href']
     #print(soup.find(id='downloadButton'))
@@ -151,7 +176,9 @@ GetSearch() #let's see if this works
 #content = f.read()
 #f.close()
 #GetSearch2(content)
-foo1 = pandas.read_html("ps (14).xls", header=0)
+time.sleep(5) #because download take some time
+#no idea why regular directory name does not work
+foo1 = pandas.read_html(os.path.realpath(downloadDir)+"\\ps.xls", header=0)
 #print(len(foo1)) #it's one
 dept_list = foo1[0]["Department"]
 event_id = foo1[0]["Event ID"]
