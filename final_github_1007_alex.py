@@ -48,8 +48,8 @@ def chrome_browser(url):
         except OSError:
             print('Error: Creating directory. ' + directory)
     createFolder(downloadDir)
-    print(os.path.dirname(downloadDir))
-    print(os.path.realpath(downloadDir))
+    #print(os.path.dirname(downloadDir))
+    #print(os.path.realpath(downloadDir))
     prefs = {"download.default_directory" : os.path.realpath(downloadDir) #this one works
              #"download.default_directory" : os.path.dirname(downloadDir)
              #"download.default_directory" : "/"+downloadDir
@@ -177,11 +177,28 @@ GetSearch() #let's see if this works
 #f.close()
 #GetSearch2(content)
 time.sleep(5) #because download take some time
+#but I wish there was a better way to wait for file to download, something using implicit wait
 #no idea why regular directory name does not work
 foo1 = pandas.read_html(os.path.realpath(downloadDir)+"\\ps.xls", header=0)
 #print(len(foo1)) #it's one
 dept_list = foo1[0]["Department"]
 event_id = foo1[0]["Event ID"]
+
+#copied almost wholesale (thus with little true understanding)
+def clear_foobar_folder():
+    folder = downloadDir
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
+
+clear_foobar_folder()
+#convenience, so that the pgm can work without manually resetting things
 
 for deptID, eventID in zip(dept_list, event_id): 
     data = {'url':'https://caleprocure.ca.gov/event/{}/{}'.format(deptID, eventID)}
