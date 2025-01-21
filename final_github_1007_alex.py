@@ -17,8 +17,11 @@ from selenium.common.exceptions import TimeoutException # Browser does not meet 
 from selenium.webdriver.common.keys import Keys
 import datetime
 
-import numpy #will this import fix my dataframe indexing problem? seems not
 import pandas
+
+#also needed to make supabase upload work
+# Create a Supabase client
+from supabase import create_client, Client
 
 downloadDir = "docfoo"
 
@@ -158,10 +161,42 @@ def GetDetails(data,browser,supabase,baseUrl):
     pprint.pprint(data)  # Print the dictionary in more readable and formatted way. 
     return data
     
+#supabase upload time, I hope this works b/c it's copypaste
+#my proj url: https://lnfmdenuypxerbhryayk.supabase.co
+def GetUploads(data):
+    url = "https://lnfmdenuypxerbhryayk.supabase.co" #new url, for my own supabase thing
+    api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuZm1kZW51eXB4ZXJiaHJ5YXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMDkwMzksImV4cCI6MjA0NDU4NTAzOX0.EcEByECBNGhPZAb3vvLKWQER9OmWmX9ItbSIkH33DFw" #new api key, for my own supabase thing
+
+    #from here on out it is completely copypaste, let's hope this works
+    table_name = "data" # Need to create a new 'data' table in Supabase in advance.
+    headers = {
+        "Content-Type": "application/json",
+        "apikey": api_key,
+        "Authorization": f"Bearer {api_key}"
+    }
+    # Use HTTP POST Request to send an API call to Supbase for uploading data. 
+    response = requests.post(
+        f"{url}/rest/v1/{table_name}", # Supabase REST API 
+        headers=headers,
+        data=json.dumps(data) # Upload JSON encoded data. 
+    )
+
+    if response.status_code == 201:
+        print("Data successfully inserted into the Supabase table.")
+    else:
+        print(f"Failed to insert data into Supabase table. Status code: {response.status_code}, Response: {response.text}")
+
+
+#i think the following block is the missing piece as to why my supabase upload is not working?
+# Create a Supabase client information to connect by defining public URL and personal api-key.
+url = "https://lnfmdenuypxerbhryayk.supabase.co" #new url, for my own supabase thing
+api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuZm1kZW51eXB4ZXJiaHJ5YXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMDkwMzksImV4cCI6MjA0NDU4NTAzOX0.EcEByECBNGhPZAb3vvLKWQER9OmWmX9ItbSIkH33DFw" #new api key, for my own supabase thing
+# Supabase Client Creation.
+supabase: Client = create_client(url, api_key)
 
 #nonfunc part obviously not complete, and I lack understanding of some parts
 #filler variables
-supabase = "foobar"
+#supabase = "foobar"
 url = "foobar"
 
 # Open an empty list to combine the results of 'dataList', obtained by 'GetSearch' and the addtional details from 'dataMore', obtained by 'GetDetails'.
@@ -203,9 +238,23 @@ clear_foobar_folder()
 for deptID, eventID in zip(dept_list, event_id): 
     data = {'url':'https://caleprocure.ca.gov/event/{}/{}'.format(deptID, eventID)}
     #print(data)
-    result=GetDetails(data, browser, supabase, url)
+    result=GetDetails(data, browser, supabase, url) 
 
     # Save the result to 'totalResult.
     totalResult.append(result)
 
+    #below is mostly copypaste, and also I have no idea if converting to json is necessary or not
+    # This process is for checking the result by converting the result into json format. 
+    #this idk what this does or if it is necessary
+    with open('result.json', 'w', encoding='utf-8') as f: # 
+        json.dump(result, f, ensure_ascii=False) # Convert the 'result' dictionary into the Json format using json.dump and write the file using 'f' object. 
+  
+    #print(result)
+    # Upload result to Supabase.
+    GetUploads(result)
+
+#do i have to manually create the data table in supabase??? it does seem to work at changing the error code from ?404? to 400
+#after adding new columns, i now have status code 401
+#perhaps supabase must also allow anonymous users or whatever its called
+#it worked after allowing anonymous users or whatever they're called, then adjusting the rls policies to match the other db's exactly
   
