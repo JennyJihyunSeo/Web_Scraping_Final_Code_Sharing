@@ -257,4 +257,5 @@ for deptID, eventID in zip(dept_list, event_id):
 #after adding new columns, i now have status code 401
 #perhaps supabase must also allow anonymous users or whatever its called
 #it worked after allowing anonymous users or whatever they're called, then adjusting the rls policies to match the other db's exactly
+#meaningless line to try another shot at making my github push work
   
