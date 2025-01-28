@@ -75,7 +75,27 @@ def chrome_browser(url):
 #heavily modified for no api
 #I can either download the file to a more convenient location or try the request.get route
 def GetSearch():
-    browser.get("https://caleprocure.ca.gov/pages/Events-BS3/event-search.aspx") #cannot use any keywords if I go straight to this webpage
+    browser.get("https://caleprocure.ca.gov/pages/Events-BS3/event-search.aspx") #cannot use any keywords if I go straight to this webpage #no actually i can, I think.
+    
+
+    #going to insert my keyword search functionality here
+    if True: #change to False to toggle off the keyword search
+        browser.implicitly_wait(15) #page loads super long for some reason
+        searchBox = browser.find_element(By.NAME, "RESP_INQA_WK_ZZ_AUC_NAME")
+        theKeywords = "water"
+        searchBox.send_keys(theKeywords)  # Enter text
+        browser.implicitly_wait(1) #paranoid that text input could somehow cause delay
+        browser.find_element(By.NAME, "RESP_INQA_WK_INQ_AUC_GO_PB").click()
+        #print("got to here, test 1")
+        
+        time.sleep(0.5)
+        WebDriverWait(browser, 10).until(
+            EC.text_to_be_present_in_element_attribute((By.ID, "loadingContainer"), "style", "display: none") #this checks if the search loading screen is displayed or not
+        )
+        #inserted the above b/c i wonder if the bug that I'm encountering where it says the (first) download buttom is not clickable is related to the page refreshing
+        #I think the issue is that, while searching, the page technically still has the button on the screen, it just is not clickable while the search is loading
+
+    print("got to here, test 2")
     browser.implicitly_wait(15) #page loads super long for some reason
     browser.find_element(By.ID,'RESP_INQA_HD_VW_GR$hexcel$0').click() #clicks on download link
     #copypasted from another one
