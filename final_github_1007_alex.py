@@ -95,7 +95,7 @@ def GetSearch():
         #inserted the above b/c i wonder if the bug that I'm encountering where it says the (first) download buttom is not clickable is related to the page refreshing
         #I think the issue is that, while searching, the page technically still has the button on the screen, it just is not clickable while the search is loading
 
-    print("got to here, test 2")
+    #print("got to here, test 2")
     browser.implicitly_wait(15) #page loads super long for some reason
     browser.find_element(By.ID,'RESP_INQA_HD_VW_GR$hexcel$0').click() #clicks on download link
     #copypasted from another one
@@ -184,6 +184,7 @@ def GetDetails(data,browser,supabase,baseUrl):
 #supabase upload time, I hope this works b/c it's copypaste
 #my proj url: https://lnfmdenuypxerbhryayk.supabase.co
 def GetUploads(data):
+    print("got to here")
     url = "https://lnfmdenuypxerbhryayk.supabase.co" #new url, for my own supabase thing
     api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuZm1kZW51eXB4ZXJiaHJ5YXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMDkwMzksImV4cCI6MjA0NDU4NTAzOX0.EcEByECBNGhPZAb3vvLKWQER9OmWmX9ItbSIkH33DFw" #new api key, for my own supabase thing
 
@@ -195,11 +196,14 @@ def GetUploads(data):
         "Authorization": f"Bearer {api_key}"
     }
     # Use HTTP POST Request to send an API call to Supbase for uploading data. 
+    #print("got to pre-post")
     response = requests.post(
         f"{url}/rest/v1/{table_name}", # Supabase REST API 
         headers=headers,
         data=json.dumps(data) # Upload JSON encoded data. 
     )
+    print("got to post-post")#it appears that when my project is paused it had an error where it did not get to here, but after unpausing I still have problems
+    #^after unpausing, my second run worked just fine without, I recall, any code changes
 
     if response.status_code == 201:
         print("Data successfully inserted into the Supabase table.")
@@ -217,7 +221,7 @@ supabase: Client = create_client(url, api_key)
 #nonfunc part obviously not complete, and I lack understanding of some parts
 #filler variables
 #supabase = "foobar"
-url = "foobar"
+#url = "foobar" #is this the variable messing me up?
 
 # Open an empty list to combine the results of 'dataList', obtained by 'GetSearch' and the addtional details from 'dataMore', obtained by 'GetDetails'.
 #idk what total result does
