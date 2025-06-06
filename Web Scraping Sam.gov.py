@@ -166,7 +166,7 @@ def GetDetails(data,browser,supabase,baseUrl): # baseURL = 'https://sam.gov/opp'
       print("generalInfoList 오류:", e)
       
 
-  # 수정 사항 반영 
+
   # Find 'div' tag in the HTML document, parsed by bs4 using HTML.parser and stored in 'soup' object. 
   try:
     descriptionTag=soup.find('div',attrs={'class':'inner-html-description ng-star-inserted'})
@@ -175,7 +175,6 @@ def GetDetails(data,browser,supabase,baseUrl): # baseURL = 'https://sam.gov/opp'
     print("descriptionTag 오류",e)
     description="" # If there is no description in a RFP, just leave it as "".
 
-  # 수정 사항 반영 contact information 가지고 오기 (Separate Contracting Office Address, Primary Point of Contact, and Secondary Point of Contact)
  
   
     # Extracting Contracting Office Address 
@@ -198,7 +197,6 @@ def GetDetails(data,browser,supabase,baseUrl): # baseURL = 'https://sam.gov/opp'
       if primary_poc_div:
           primary_poc_ul = soup.find('ul', attrs={'class':'usa-unstyled-list ng-star-inserted'}) # Find inner 'ul' (Unordered list) tag with the specified class. 
           primary_poc_li_list = primary_poc_ul.find_all('li') # Find inner 'li' (list) tag where 'name', 'email' and 'phone number' are placed in each 'li' tag. 
-      # 빈 dictionary를 생성해서 Name, Email, Phone을 기재 (Add details in an empty dictionary.)
           primary_poc_info = {'Name': '', 'Email': '', 'Phone': ''}
 
           for li in primary_poc_li_list: # 'li' tag was parsed as a bs4 object. 
@@ -407,7 +405,7 @@ for index,data in enumerate(dataList): # DataList is a list of dictionaries and 
   clear_docs_folder()
   # Save the result to 'totalResult.
   totalResult.append(result)
-  # 전체 결과를 'totalResult.json' 파일에 저장합니다.
+  # Save results in JSON file
   with open('totalResult.json', 'w', encoding='utf-8') as f:
     json.dump(totalResult, f, ensure_ascii=False)
   
