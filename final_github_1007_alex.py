@@ -19,12 +19,21 @@ import datetime
 
 import pandas
 
-#also needed to make supabase upload work
 # Create a Supabase client
 from supabase import create_client, Client
 
 downloadDir = "docfoo"
 
+#consider cleaning up the descriptions (taking out the newlines, mainly)
+
+#set new download directory
+#downloadDir = "docfoo" #set globally now
+def createFolder(directory):
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError:
+        print('Error: Creating directory. ' + directory)
 #function was copypasted wholesale
     #plan to add a different default download spot to make programming much easier
 # Define chrome_browser to initialize and set up the Chrome browser for installation purposes. 
@@ -42,24 +51,12 @@ def chrome_browser(url):
     # options.add_argument('headless') # 'headless' mode enables Chrome browser to be operated in the background without opening a window on a screen.
     # options.add_argument('--headless=new') # This is the newer version of 'headless' mode that matched the newer version of 'Chrome browser' 
 
-    #set new download directory
-    #downloadDir = "docfoo" #set globally now
-    def createFolder(directory):
-        try:
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-        except OSError:
-            print('Error: Creating directory. ' + directory)
+#TODO: consider making this default download directory thing outside of the function, because the original does not have this inside the function
     createFolder(downloadDir)
     #print(os.path.dirname(downloadDir))
     #print(os.path.realpath(downloadDir))
     prefs = {"download.default_directory" : os.path.realpath(downloadDir) #this one works
-             #"download.default_directory" : os.path.dirname(downloadDir)
-             #"download.default_directory" : "/"+downloadDir
-             #,'savefile.default_directory': "/"+downloadDir
-             #,"directory_upgrade": True
              }
-    
     options.add_experimental_option("prefs",prefs)
 
     options.add_experimental_option("detach", True)  # Opens browser window on a screen during web scrping and prevents the browser window from closing after the task completes.
@@ -71,22 +68,20 @@ def chrome_browser(url):
     browser.implicitly_wait(3) # Wait 3 seconds for a browser to absorb all configuration settings before web scraping. 
     return browser # Configure all settings for the browser and save them to the 'browser' object. 
 
-#no keyword functionality yet
-#heavily modified for no api
+#TODO: consider changing the function so that keywords are in the function keywords instead of manually putting them in the function
 #I can either download the file to a more convenient location or try the request.get route
 def GetSearch():
     browser.get("https://caleprocure.ca.gov/pages/Events-BS3/event-search.aspx") #cannot use any keywords if I go straight to this webpage #no actually i can, I think.
     
 
     #going to insert my keyword search functionality here
-    if True: #change to False to toggle off the keyword search
+    if False: #change to False to toggle off the keyword search
         browser.implicitly_wait(15) #page loads super long for some reason
         searchBox = browser.find_element(By.NAME, "RESP_INQA_WK_ZZ_AUC_NAME")
         theKeywords = "water"
         searchBox.send_keys(theKeywords)  # Enter text
         browser.implicitly_wait(1) #paranoid that text input could somehow cause delay
         browser.find_element(By.NAME, "RESP_INQA_WK_INQ_AUC_GO_PB").click()
-        #print("got to here, test 1")
         
         time.sleep(0.5)
         WebDriverWait(browser, 10).until(
@@ -95,7 +90,6 @@ def GetSearch():
         #inserted the above b/c i wonder if the bug that I'm encountering where it says the (first) download buttom is not clickable is related to the page refreshing
         #I think the issue is that, while searching, the page technically still has the button on the screen, it just is not clickable while the search is loading
 
-    #print("got to here, test 2")
     browser.implicitly_wait(15) #page loads super long for some reason
     browser.find_element(By.ID,'RESP_INQA_HD_VW_GR$hexcel$0').click() #clicks on download link
     #copypasted from another one
@@ -104,29 +98,13 @@ def GetSearch():
     WebDriverWait(browser, 10).until(
         EC.element_to_be_clickable((By.ID, "downloadButton"))
     )
-    #we'll see if the below works or not, don't entirely understand it because I copied some parts
-    browser.find_element(By.ID,'downloadButton').click() #to see if my issue is with request or with something else
+    browser.find_element(By.ID,'downloadButton').click()
     #do i need to wait for file to download?
-
-    #soup=BeautifulSoup(browser.page_source,'html.parser')
-    #downloadURL = soup.find(id='downloadButton')['href']
-    #print(soup.find(id='downloadButton'))
-
-    #could be a useful code chunk if I do go go the request.get route
-    #remember that a proxy could be an option too
-    #cookies = browser.get_cookies()
-    #print(cookies)
-    #requests.get(downloadURL, cookies=cookies)
-
-    #response = requests.get(downloadURL)
-    #print(response.content)
-    #print(response.text)
-
-    #downloadFile = response.content
-    #soup2=BeautifulSoup(downloadFile,'html.parser')
-    #print(soup2.get_text)
+    time.sleep(5) #because download take some time
+    #but I wish there was a better way to wait for file to download, something using implicit wait
 
 #I've separated the getting of excel file and the parsing of it for now
+#it appears that I never used this function
 def GetSearch2(rawtext): 
     soup3=BeautifulSoup(rawtext,'html.parser')
     print(soup3.stripped_strings)
@@ -196,22 +174,31 @@ def GetUploads(data):
         "Authorization": f"Bearer {api_key}"
     }
     # Use HTTP POST Request to send an API call to Supbase for uploading data. 
-    #print("got to pre-post")
     response = requests.post(
         f"{url}/rest/v1/{table_name}", # Supabase REST API 
         headers=headers,
         data=json.dumps(data) # Upload JSON encoded data. 
     )
-    print("got to post-post")#it appears that when my project is paused it had an error where it did not get to here, but after unpausing I still have problems
-    #^after unpausing, my second run worked just fine without, I recall, any code changes
 
     if response.status_code == 201:
         print("Data successfully inserted into the Supabase table.")
     else:
         print(f"Failed to insert data into Supabase table. Status code: {response.status_code}, Response: {response.text}")
 
+#copied almost wholesale (thus with little true understanding)
+def clear_foobar_folder():
+    folder = downloadDir
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
 
-#i think the following block is the missing piece as to why my supabase upload is not working?
+
 # Create a Supabase client information to connect by defining public URL and personal api-key.
 url = "https://lnfmdenuypxerbhryayk.supabase.co" #new url, for my own supabase thing
 api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuZm1kZW51eXB4ZXJiaHJ5YXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMDkwMzksImV4cCI6MjA0NDU4NTAzOX0.EcEByECBNGhPZAb3vvLKWQER9OmWmX9ItbSIkH33DFw" #new api key, for my own supabase thing
@@ -230,34 +217,23 @@ totalResult=[]
 browser=chrome_browser('https://www.google.co.kr')
 
 GetSearch() #let's see if this works
+#TODO: above line is placed elsewhere in the original, should I copy that?
 
 #f = open("ps (14).xls")
 #content = f.read()
 #f.close()
 #GetSearch2(content)
-time.sleep(5) #because download take some time
-#but I wish there was a better way to wait for file to download, something using implicit wait
+
 #no idea why regular directory name does not work
 foo1 = pandas.read_html(os.path.realpath(downloadDir)+"\\ps.xls", header=0)
 #print(len(foo1)) #it's one
 dept_list = foo1[0]["Department"]
 event_id = foo1[0]["Event ID"]
 
-#copied almost wholesale (thus with little true understanding)
-def clear_foobar_folder():
-    folder = downloadDir
-    for filename in os.listdir(folder):
-        file_path = os.path.join(folder, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(f'Failed to delete {file_path}. Reason: {e}')
 
 clear_foobar_folder()
 #convenience, so that the pgm can work without manually resetting things
+#original had the clear function later in the program
 
 for deptID, eventID in zip(dept_list, event_id): 
     data = {'url':'https://caleprocure.ca.gov/event/{}/{}'.format(deptID, eventID)}
@@ -266,6 +242,7 @@ for deptID, eventID in zip(dept_list, event_id):
 
     # Save the result to 'totalResult.
     totalResult.append(result)
+    #no clue why unlike in the original, this line is placed before, not after, the next 2 code chunks
 
     #below is mostly copypaste, and also I have no idea if converting to json is necessary or not
     # This process is for checking the result by converting the result into json format. 
@@ -276,6 +253,8 @@ for deptID, eventID in zip(dept_list, event_id):
     #print(result)
     # Upload result to Supabase.
     GetUploads(result)
+
+    #TODO: do I need a totalResult.json file like in the original?
 
 #do i have to manually create the data table in supabase??? it does seem to work at changing the error code from ?404? to 400
 #after adding new columns, i now have status code 401
